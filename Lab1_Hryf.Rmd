@@ -1,0 +1,122 @@
+---
+title: "Lab1 Hryf Viktoriia"
+output:
+  html_document:
+    df_print: paged
+---
+
+## Task1
+
+## 1.Створити змінні різного типу
+```{r}
+
+x1<- c("abc","def") ##character
+
+x2<- c(0.3, 0.8) ##numeric
+
+x3<- 1:5 ##integer
+
+x4<- c(1+3i) ##complex
+
+x5<- c(FALSE, TRUE) ##logical
+
+print (x1)
+class(x1)
+print (x2)
+class (x2)
+print (x3)
+class (x3)
+print (x4)
+class (x4)
+print(x5)
+class (x5)
+```
+
+## Task2
+
+## Створити вектори 
+
+```{r}
+vector1<-c(5:75)
+
+print (vector1)
+
+vector2<-c(3.14,2.71,0,13)
+
+print (vector2)
+
+vector3<-c(1:100)
+
+as.logical(vector3)
+```
+## Task3
+
+## Створити матрицю
+```{r}
+mymat1<-(matrix(data=c(0.5,3.9,0,2,1.3,131,2.2,7,3.5,2.8,4.6,2.1),nrow=4, ncol=3))
+
+print (mymat1)
+```
+## або
+```{r}
+a<-c(0.5,3.9,0,2)
+
+b<-c(1.3,131,2.2,7)
+
+d<-c(3.5,2.8,4.6,2.1)
+
+cbind(a,b,d)
+```
+## Task4
+
+## Створити список з усіма базовими типами
+```{r}
+list_data<-list("Red",2i+3,1:3,3.5, FALSE)
+print (list_data)
+```
+
+## Task5
+
+## Створити фактор з трьома рівнями «baby», «child», «adult».
+```{r}
+data1<-c("baby","adult","child")
+myfactor<-factor(data1, levels=c("baby","child","adult",ordered=TRUE))
+print(data1)
+print (myfactor)
+```
+
+## Task6
+
+## Знайти індекс першого значення NA в векторі 1, 2, 3, 4, NA, 6, 7, NA, 9, NA, 11. Знайти кількість значень NA.
+```{r}
+vector_NA<-c(1,2,3,4,NA,6,7,NA,9,NA,11)
+```
+# Кількість NA у векторі
+```{r}
+sum(is.na(vector_NA))
+```
+## Індекс першого значення NA у векторі
+```{r}
+which(is.na(vector_NA))[1]
+```
+
+## Task7
+
+## Створити довільний data frame та вивести в консоль.
+```{r}
+nomer<-1:5
+name<-c("Viktoriia","Myron","Andrew","Alina","Yuriy")
+mark<-c(90,85,80,90,80)
+position1<-data.frame(nomer,name,mark)
+print (position1)
+names(position1)
+```
+
+## Task8
+
+## Змінити імена стовпців цього data frame.
+
+```{r}
+names(position1)[names(position1)=="nomer"]<-"position"
+print (position1)
+```
