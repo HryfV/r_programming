@@ -1,0 +1,50 @@
+---
+title: "Lab4 Hryf Viktoriia"
+output:
+  html_document:
+    df_print: paged
+---
+
+
+```{r}
+data1<-read.csv('D:/hw1_data.csv', header=TRUE,sep = ',')
+data1
+## 1. Які назви стовпців файлу даних?
+x1<-colnames(data1)
+x1
+## 2. Виведіть перші 6 строк фрейму даних.
+x2<-data1[1:6,]
+x2
+## 3. Скільки спостерігань (строк) в дата фреймі?
+x3<-nrow(data1)
+x3
+## 4. Виведіть останні 10 строк дата фрейму.
+x4<-data1[144:153,]
+x4
+## 5. Як багато значень «NA» в стовпці «Ozone»?
+x5<-data1$Ozone
+x5_1<-sum(is.na(x5))
+x5_1
+## 6. Яке середнє (mean) стовпця «Ozone». Виключити «NA» значення.
+x6_1<-x5[!is.na(x5)]
+x6<-mean(x6_1)
+x6
+## 7.Виведіть частину набору даних (subset) зі значенням «Ozone» > 31 та «Temp» > 90.
+sub1<-subset(data1, data1$Ozone>31 & data1$Temp>90)
+sub1
+## Яке середнє (mean) значень «Solar.R» в цьому наборі даних (subset)?
+x7<-mean (sub1$Solar.R)
+x7
+## 8. Яке середнє значення (mean) для «Temp» для червня («Month» дорівнює6)?
+sub3<-subset(data1, data1$Month==6)
+sub3
+x8<-mean(sub3$Temp)
+x8
+## 9. Яке максимальне значення «Ozone» для травня («Month» дорівнює 5)?
+sub4<-subset(data1, data1$Month==5)
+sub4
+x9<-max(sub4["Ozone"], na.rm = TRUE)
+x9
+```
+
+
