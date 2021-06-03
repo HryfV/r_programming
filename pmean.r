@@ -12,7 +12,7 @@ pmean <- function(directory,pollutant,id=1:332){
 }
 
 complete<-function(directory,id){
-  setwd("/Users/Â³êòîğ³ÿ/Documents/rprog_data_specdata")
+  setwd("C://Users/Â³êòîğ³ÿ/Desktop/R/")
   nob1<-c()
   l=1
   for (i in id){
@@ -26,7 +26,7 @@ complete<-function(directory,id){
   return(data.frame(id,nob1))
 }
 corr=function(directory, threshold = 0) {
-  setwd("/Users/Â³êòîğ³ÿ/Documents/rprog_data_specdata")
+  setwd("C://Users/Â³êòîğ³ÿ/Desktop/R/")
   correl=numeric()
   for (i in 1:332){
     file1=paste0(directory,'/',i,'.csv')
