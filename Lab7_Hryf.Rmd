@@ -4,119 +4,157 @@ output:
   html_document:
     df_print: paged
 ---
-#Функція prepare_set
+ЧАСТИНА 1. Функція prepare_set
 
 ```{r}
-prepare_set<-function(file_name){
-  library(stringr)
-  library(tibble)
-  df<-read.csv("C://Users/Public/R/olympics.csv", skip = 1, header = TRUE, encoding="UTF-8", stringsAsFactors = FALSE)
-  colnames(df)[1]="Country"
-  for (i in (1:length(colnames(df)))){
-  if (str_detect(colnames(df)[i], "X01")){
-    colnames(df)[i]=str_replace(colnames(df)[i],"X01..","Gold")
-  }
-  if (str_detect(colnames(df)[i], "X02")){
-    colnames(df)[i]=str_replace(colnames(df)[i],"X02..","Silver")
-  }
-  if (str_detect(colnames(df)[i], "X03")){
-    colnames(df)[i]=str_replace(colnames(df)[i],"X03..","Bronze")
-  }
-  if (str_detect(colnames(df)[i], "X..")){
-    colnames(df)[i]=str_replace(colnames(df)[i],"X..","")
-  }
-  
-  }
-country=c()
-ID_=c()
-for (i in (1:length(df["Country"][[1]]))){
-  country[i]=str_split(df['Country'][[1]][i],"\\s+\\(.*",simplify = TRUE)[1,1]
-  ID_[i]=str_split(df['Country'][[1]][i],"\\(",n=2,simplify = TRUE)[1,2]
-  ID_[i]=substring(id[i],1,3)
-  
+prepare_set <- function(file_path){
+  df <- read_file(file_path)
+  df <- remove_invalid_rows(df)
+  df <- rename_columns(df)
+  df <- add_country_id(df)
+  df <- trim_county_names(df)
+  return (df)
 }
-df["Country"]=country
-df2=add_column(df, ID_, .before = 1)
-df2=head(df2,-1)
-  return (df2)
-  }
+read_file <- function(file_path){
+  return (read.csv("D:/R/olympics.csv", skip = 1, header = TRUE, encoding="UTF-8", stringsAsFactors = FALSE))
+}
+remove_invalid_rows <- function(df){
+  df <- remove_totals(df)
+  return (df)
+}
+remove_totals <- function(df){
+  return (df[!df[1] == "Totals", ])
+}
+rename_columns <- function(df){
+  for (col_name in colnames(df))
+    names(df)[names(df) == col_name] <- get_new_column_name(col_name) 
+  return (df)
+}
+get_new_column_name <- function(old_col_name){
+   
+  if (old_col_name == 'X') return ('Country')
+  
+  # 'X..' -> ''
+  if (grepl('X\\.\\.', old_col_name)) return (gsub(pattern = 'X\\.\\.',replacement = '',x = old_col_name))
+  
+  # 'X01..' -> 'Gold'
+  if (grepl('X01\\.\\.', old_col_name)) return (gsub(pattern = 'X01\\.\\.',replacement = 'Gold',x = old_col_name))
+  
+  # 'X02..' -> 'Silver'
+  if (grepl('X02\\.\\.', old_col_name)) return (gsub(pattern = 'X02\\.\\.',replacement = 'Silver',x = old_col_name))
+  
+  # 'X03..' -> 'Bronze'
+  if (grepl('X03\\.\\.', old_col_name)) return (gsub(pattern = 'X03\\.\\.',replacement = 'Bronze',x = old_col_name))
+  
+  # else -> no changes
+  return (old_col_name)
+}
+add_country_id <- function(df, column_name = 'Country'){
+  df['ID'] <- str_match(df[[column_name]], '(.*\\()([A-Z0-9]{3})(\\).*)')[,3]
+  return (df)
+}
+trim_county_names <- function(df, column_name = 'Country'){
+  df[[column_name]] <- str_match(df[[column_name]], '([A-Za-z\\s]*)(\\s\\(.*)')[,2]
+  return (df)
+}
 olympics <- prepare_set("olympics.csv")
 olympics
 ```
 
-1. Яка країна виграла найбільшу кількість золотих нагород на літніх іграх?
+1. Котра країна виграла найбільшу кількість золотих нагород на літніх іграх?
 
 ```{r}
-q1<-function(){
-  country_max=''
-  gold_max=0
-  for (i in (1:length(olympics['Country'][[1]]))){
-    if (olympics['Gold'][[1]][i]>gold_max) {
-      gold_max=olympics['Gold'][[1]][i]
-      country_max=olympics['Country'][[1]][i]}
-  }
-  return(country_max)
+ans_one <- function(df){
+  return (df[df$'Gold' == max(df$'Gold'),'Country'])
 }
-q1()
+ans_one(olympics)
+```
+2. Яка країна має найбільшу різницю між кількістю нагород на літніх та зимових 
+іграх?
+
+```{r}
+ans_two <- function(df){
+  difference <- get_absolute_summer_winter_difference(df)
+  country_with_max_difference <- df[difference == max(difference),'Country']
+  return (country_with_max_difference)
+}
+get_absolute_summer_winter_difference <- function(df){
+  return (abs(df$'Total' - df$'Total.1'))
+}
+ans_two(olympics)
+```
+3. В якій крайні найбільша різниця між літніми та зимовими золотими нагородами 
+відносно до загальної кількості нагород (Summer Gold - Winter Gold) / Total Gold.
+Врахувати тільки країни які мають як мінімум по одній нагороді в літніх та 
+зимових іграх.
+
+```{r}
+ans_three <- function(df){
+  df <- filter_out_losers(df)
+  difference <- get_relative_summer_winter_difference(df)
+  country_with_max_difference <- df[difference == max(difference),'Country']
+  return (country_with_max_difference)
+}
+filter_out_losers <- function(df){
+  return (df[
+      df$'Gold' > 0 & 
+      df$'Gold.1' > 0
+      ,])
+}
+get_relative_summer_winter_difference <- function(df){
+  relative_difference <- (df$'Gold' - df$'Gold.1') / df$'Gold.2'
+  return (relative_difference)
+}
+ans_three(olympics)
+```
+```{r}
+ans_three <- function(df){
+  df <- filter_out_losers(df)
+  difference <- get_relative_summer_winter_difference(df)
+  country_with_max_difference <- df[difference == max(difference),'Country']
+  return (country_with_max_difference)
+}
+filter_out_losers <- function(df){
+  return (df[
+      df$'Gold' > 0 & 
+      df$'Gold.1' > 0
+      ,])
+}
+get_relative_summer_winter_difference <- function(df){
+  relative_difference <- (df$'Gold' - df$'Gold.1') / df$'Gold.2'
+  return (relative_difference)
+}
+ans_three(olympics)
 ```
 
-2. Яка країна має найбільшу різницю між кількістю нагород на літніх та зимових іграх?
-```{r}
-q2<-function(){
-  country_dif=''
-  dif=0
-  for (i in (1:length(olympics['Country'][[1]]))){
-    if (abs(olympics['Total'][[1]][i]-olympics['Total.1'][[1]][i])>dif)   {
-      dif=abs(olympics['Total'][[1]][i]-olympics['Total.1'][[1]][i])
-      country_dif=olympics['Country'][[1]][i]
-      }
-  }
-  return(country_dif)
-}
-q2()
-```
-3. В якій крайні найбільша різниця між літніми та зимовими золотими нагородами відносно до загальної кількості нагород (Summer Gold - Winter Gold) / Total Gold. Врахувати тільки країни які мають як мінімум по одній нагороді в літніх та зимових іграх.
-```{r}
-q3<-function(){
-  country_dif2=''
-  dif=0
-  for (i in (1:length(olympics['Country'][[1]]))){
-    if ((olympics['Gold'][[1]][i]>=1) & (olympics['Gold.1'][[1]][i]>=1)){
-    
-    if (abs((olympics['Gold'][[1]][i]-olympics['Gold.1'][[1]][i]))/olympics['Gold.2'][[1]][i]>dif){
-        dif=abs((olympics['Gold'][[1]][i]-olympics['Gold.1'][[1]][i]))/olympics['Gold.2'][[1]][i]
-        country_dif2=olympics['Country'][[1]][i]
-      }
-    }
-  }
-  return(country_dif2)
-}
-q3()
-```
+4. Необхідно знайти кількість балів по кожній крайні. Бали рахуються наступним 
+чином: Золота нагорода Gold.2 це три бали, срібна Silver.2 - 2 бали та бронзова 
+Bronze.2 – 1 бал.
 
-4. Необхідно знайти кількість балів по кожній крайні. Бали рахуються наступним чином: Золота нагорода Gold.2 це три бали, срібна Silver.2 - 2 бали та бронзова Bronze.2 – 1 бал.
 ```{r}
-q4<-function(){
- country_new=olympics['Country'][[1]]
- Points=c()
- for (i in (1:length(olympics['Country'][[1]]))){
-   Points[i]=olympics['Gold.2'][[1]][i]*3+olympics['Silver.2'][[1]][i]*2+olympics['Bronze.2'][[1]][i]*1
- }
- new_olimp<-data.frame(country_new,Points)
- colnames(new_olimp)[1]='Country'
- return(new_olimp)
+ans_four <- function(df){
+  points <- get_points(df)
+  return (data.frame(
+    Country=df$'Country',
+    Points=points))
 }
-q4()
-
+get_points <- function(df, gold_reward = 3, silver_reward = 2, bronze_reward = 1){
+  
+  gold_points = df$'Gold.2'*gold_reward
+  silver_points = df$'Silver.2'*silver_reward
+  bronze_points = df$'Bronze.2'*bronze_reward
+  
+  total_points = gold_points + silver_points + bronze_points
+  return (total_points)
+}
+ans_four(olympics)
+```
 ЧАСТИНА 2.
 5. В якому штаті (state) більше всього округів (county)?
 
 ```{r}
-read_file <- function(file_path){
-  return (read.csv("/Users/Public/R/census.csv", skip = 1, header = TRUE, encoding="UTF-8", stringsAsFactors = FALSE))
-}
 census_df <- read.csv("census.csv", stringsAsFactors = FALSE)
-q5 <- function(df){
+ans_five <- function(df){
   counties_count_by_state <- get_counties_count_by_state(df)
   max_counties <- max(counties_count_by_state$'COUNTY')
   state_with_max_counties <- counties_count_by_state[
@@ -127,14 +165,14 @@ q5 <- function(df){
 get_counties_count_by_state <- function(df){
   return (aggregate(COUNTY ~ STNAME, df, function(x) length(unique(x))))
 }
-q5(census_df)
+ans_five(census_df)
 ```
 6.Якщо розглядати три найбільш населених округа (county) з кожного штату, які три 
 найбільш населені штати (в порядку з більш до менш населеного)?
 
 
 ```{r}
-q6 <- function(df){
+ans_six <- function(df){
   df <- df[ df$SUMLEV != 040 ,]
   pop_by_state <- get_population_by_state(df)
   sorted_pop_by_state <- pop_by_state[order(-pop_by_state[,'CENSUS2010POP']), ]
@@ -146,14 +184,14 @@ get_population_by_state <- function(df){
 get_population_in_largest_counties <- function(state, largest_counties_number = 3){
   return (sum(sort(state, decreasing = TRUE)[1:largest_counties_number]))
 }
-q6(census_df)
+ans_six(census_df)
 ```
 
 7. Який округ (county) має найбільшу абсолютну зміну в населенні протягом 
 періоду 2010-2015?
 
 ```{r}
-q7 <- function(df){
+ans_seven <- function(df){
   df <- df[ df$SUMLEV != 040 ,]
   changes_by_county <- get_pop_changes_by_county(df)
   sorted_changes_by_county <- changes_by_county[order(-changes_by_county[,'range']), ]
@@ -173,7 +211,7 @@ get_county_changes_range <- function(county){
   estimates <- as.numeric(county)
   return (max(estimates) - min(estimates))
 }
-q7(census_df)
+ans_seven(census_df)
 ```
 
 8. В census_df США поділені на 4 регіони (колонка "REGION"). Напишіть функцію, 
@@ -181,7 +219,7 @@ q7(census_df)
 починається з "Washington" та POPESTIMATE2015 більше ніж POPESTIMATE2014.
 
 ```{r}
-q8 <- function(df){
+ans_eight <- function(df){
   filtered <- df[
     ( df$REGION == '1' | df$REGION == '2' ) 
     & (grepl('^Washington', df$CTYNAME))
@@ -190,5 +228,5 @@ q8 <- function(df){
   
   return (filtered[c("STNAME", "CTYNAME")])
 }
-q8(census_df)
+ans_eight(census_df)
 ```
